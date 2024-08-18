@@ -1,0 +1,89 @@
+/*
+Explicación de las Mejoras con respecto a mi primer entregable:
+Uso de Objetos: He añadido una clase Gasto para representar cada gasto de manera más estructurada.
+Manipulación del DOM: Los resultados ahora se muestran directamente en la página usando el DOM en lugar de solo la consola.
+Métodos de Array: Se usan forEach, reduce, y filter para trabajar con los datos de las categorías y los gastos de manera más eficiente.
+Interactividad Mejorada: El simulador inicia cuando se hace clic en el botón "Iniciar" y muestra los resultados directamente en la página.
+*/
+
+class Gasto {
+    constructor(nombre, importe) {
+        this.nombre = nombre;
+        this.importe = importe;
+    }
+}
+
+let presupuesto = parseInt(prompt('Ingrese el presupuesto de este mes'));
+const categorias = [];
+
+function agregarCategoriaYGastos() {
+    let nuevaCategoria = prompt('Ingrese una categoría para los siguientes gastos, (si quiere terminar ingresar LISTO)');
+
+    if (nuevaCategoria.toUpperCase() === 'LISTO') {
+        return false;
+    }
+
+    let gastos = [];
+    while (true) {
+        let nombreGasto = prompt(`Ahora ingrese el nombre del gasto en de la categoría ${nuevaCategoria}, (si quiere terminar ingresar LISTO)`);
+        if (nombreGasto.toUpperCase() === 'LISTO') {
+            break;
+        }
+
+        let importeGasto = parseFloat(prompt('Ingrese el importe del gasto'));
+        if (isNaN(importeGasto)) {
+            alert('Por favor ingrese un número válido para el importe del gasto');
+            continue;
+        }
+
+        let nuevoGasto = new Gasto(nombreGasto, importeGasto);
+        gastos.push(nuevoGasto);
+    }
+
+    categorias.push({ categoria: nuevaCategoria, gastos: gastos });
+    return true;
+}
+
+function calcularGastoTotal() {
+    let gastoTotal = 0;
+    categorias.forEach(categoria => {
+        categoria.gastos.forEach(gasto => {
+            gastoTotal += gasto.importe;
+        });
+    });
+    return gastoTotal;
+}
+
+function mostrarResumenEnPagina(gastoTotal) {
+    let resumenDiv = document.getElementById('resumen');
+    resumenDiv.innerHTML = '';
+
+    categorias.forEach(categoria => {
+        let gastoCategoria = categoria.gastos.reduce((total, gasto) => total + gasto.importe, 0);
+        let porcentajeGasto = (gastoCategoria / gastoTotal) * 100;
+        resumenDiv.innerHTML += `<p>Categoría: ${categoria.categoria}, Total Gastado: ${gastoCategoria}, Porcentaje del Gasto Total: ${porcentajeGasto.toFixed(2)}%</p>`;
+    });
+
+    if (gastoTotal > presupuesto) {
+        resumenDiv.innerHTML += `<p style="color:red;">Has superado tu presupuesto mensual.</p>`;
+    } else {
+        let ahorro = presupuesto - gastoTotal;
+        resumenDiv.innerHTML += `<p>No has superado tu presupuesto mensual. Te queda un ahorro de: ${ahorro}</p>`;
+    }
+}
+
+function filtrarCategoriasPorGasto(minimoGasto) {
+    return categorias.filter(categoria => {
+        let gastoCategoria = categoria.gastos.reduce((total, gasto) => total + gasto.importe, 0);
+        return gastoCategoria > minimoGasto;
+    });
+}
+
+function simularPresupuesto() {
+    while (agregarCategoriaYGastos()) {}
+
+    let gastoTotal = calcularGastoTotal();
+    mostrarResumenEnPagina(gastoTotal);
+}
+
+document.getElementById('iniciar').addEventListener('click', simularPresupuesto);
